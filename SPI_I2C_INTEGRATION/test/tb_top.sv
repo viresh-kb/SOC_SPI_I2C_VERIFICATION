@@ -1,54 +1,84 @@
-`include "uvm_macros.svh"
+/*`include "uvm_macros.svh"
 import uvm_pkg::*;
-import soc_pkg_file::*;
+import soc_pkg_file::*;*/
+
 
 module tb_top;
 
-  bit clk;
-  bit i2c_clk;
+import uvm_pkg::*;
+import soc_pkg_file::*;
+`include "uvm_macros.svh"
 
-  spi_if spif(clk);
-  i2c_if i2cvif(i2c_clk);
+	bit clk=1'b0;
+	bit rst;
+	
+	spi_if spif(clk);
+	i2c_if vif(clk);
 
-  top spi_dut(
-    .clk(clk),
-    .rst(spif.rst),
-    .newd(spif.newd),
-    .din(spif.din),
-    .dout(spif.dout),
-    .done(spif.done)
-  );
+	top DUT(.clk(clk),
+		.rst(spif.rst),
+		.newd(spif.newd),
+		.din(spif.din),
+		.dout(spif.dout),
+		.done(spif.done)
+		/*.sclk(spif.sclk),
+		.cs(spif.cs),
+		.mosi(spif.mosi)*/
+		);
 
-  i2c_mem i2c_dut(
-    .clk(i2c_clk),
-    .rst(i2cvif.rst),
-    .wr(i2cvif.wr),
-    .addr(i2cvif.addr),
-    .din(i2cvif.din),
-    .datard(i2cvif.datard),
-    .done(i2cvif.done)
-  );
+ 	i2c_mem DUT_i2c(.clk(clk),
+		.rst(vif.rst),
+		.wr(vif.wr),
+		.addr(vif.addr),
+		.din(vif.din),
+		.datard(vif.datard),
+		.done(vif.done)
+		);
 
-  always #2  clk     = ~clk;
-  always #10 i2c_clk = ~i2c_clk;
+// Binding the assertion module
+	bind i2c_mem i2c_assertion i2c_assert_inst(
+		.clk(clk),
+		.rst(rst),
+		.state(state),
+		.wr(wr),
+		.sda(sda),
+		.update(update),
+		.done(done),
+		.en(en),
+		.sdat(sdat),
+		.nstate(nstate),
+		.countn(countn),
+		.addrn(addrn),
+		.scl(scl),
+		.sdan(sdan)
+	);
+
+	assign spif.rst = rst;
+	assign vif.rst = rst;
 
   initial begin
-    soc_env_config sicfg;
-    sicfg = new("sicfg");
-    sicfg.spi_vif = spif;
-    sicfg.i2c_vif = i2cvif;
-    uvm_config_db #(soc_env_config)::set(null,"*","soc_env_config",sicfg);
-    uvm_config_db #(virtual spi_if)::set(null,"*","spi_vif",spif);
-    uvm_config_db #(virtual i2c_if)::set(null,"*","vif",i2cvif);
-    run_test();
+	uvm_config_db#(virtual spi_if)::set(null,"uvm_test_top.env.agent*","spi_vif",spif);
+	uvm_config_db#(virtual i2c_if)::set(null,"uvm_test_top.env.agenth*","vif",vif);
   end
 
-  initial begin
-    spif.rst  = 1'b1;
-    i2cvif.rst = 1'b1;
-    #20;
-    spif.rst  = 1'b0;
-    i2cvif.rst = 1'b0;
-  end
+	always #2 clk = ~clk;
+	
+	initial begin
+		rst = 1'b1;
+		#15 rst = 1'b0;
+	end
+
+	initial begin
+		run_test();
+	end
+
+
+
+/*  task reset();
+	spif.cb_spi_driver.rst <= 1'b1;
+	repeat(10)@(spif.cb_spi_driver);
+	spif.cb_spi_driver.rst <= 1'b0;
+  endtask*/
+ 
 
 endmodule

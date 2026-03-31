@@ -1,29 +1,15 @@
-class soc_test4 extends uvm_test;
+class soc_test4 extends soc_base_test;
 	`uvm_component_utils(soc_test4)
 
-  soc_env envh;
-  soc_env_config sicfg;
-  soc_virtual_sequence3 vseq;
+ function new(string name,uvm_component parent);
+	super.new(name,parent);
+ endfunction
 
-  function new(string name, uvm_component parent);
-	super.new(name, parent);
-  endfunction
-
-  function void build_phase(uvm_phase phase);
-	super.build_phase(phase);
-	sicfg = new("sicfg");
-	if(!uvm_config_db #(soc_env_config)::get(this,"","soc_env_config",sicfg))
-	  `uvm_fatal(get_type_name(),"config not found")
-	uvm_config_db #(soc_env_config)::set(this,"*","soc_env_config",sicfg);
-	envh = soc_env::type_id::create("envh",this);
-	vseq = soc_virtual_sequence3::type_id::create("vseq");
-  endfunction
-
-  task run_phase(uvm_phase phase);
+ virtual task run_phase(uvm_phase phase);
+	soc_virtual_sequence4 vseq;
 	phase.raise_objection(this);
-	`uvm_info(get_type_name(),"soc_test4: SPI + I2C max boundary write",UVM_NONE)
-	vseq.start(envh.vsqr);
-	#100;
+	vseq=soc_virtual_sequence4::type_id::create("vseq");
+	vseq.start(env.vsqr);
 	phase.drop_objection(this);
-  endtask
+ endtask
 endclass
