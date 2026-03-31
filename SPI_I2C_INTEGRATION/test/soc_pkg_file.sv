@@ -13,14 +13,7 @@ package soc_pkg_file;
 
 	// sequences
 	`include "spi_sequence.sv"
-	`include "i2c_seqs_base.sv"
-	`include "i2c_seqs_single_write.sv"
-	`include "i2c_seqs_single_write1.sv"
-	`include "i2c_seq_single_read.sv"
-	`include "i2c_seq_single_read1.sv"
-	`include "i2c_write_read_seqs.sv"
-	`include "i2c_wr_random_seqs.sv"
-	`include "i2c_wrq_seqs.sv"
+	`include "i2c_seqs.sv"
 
 	// drivers and monitors
 	`include "spi_driver.sv"
